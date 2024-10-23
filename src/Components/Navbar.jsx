@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaBell, FaPlus } from "react-icons/fa6";
+import Contacts from '../Components/Contacts';
 
 function Navbar() {
   return (
@@ -39,11 +40,8 @@ function Navbar() {
                 <span className="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white">JinaSave</span>
               </a>
             </div>
-            <div className="hidden sm:flex items-center ms-2 md:me-24 justify-between w-2/5">
-              <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Messages</a>
+            <div className="hidden sm:flex items-center ms-2 md:me-24 justify-center w-2/5">
               <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Contacts</a>
-              <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Automation</a>
-              <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Media</a>
             </div>
             <div className="flex items-center">
               <FaBell className='w-6 h-6' />
@@ -96,6 +94,10 @@ function Navbar() {
       >
         <div className="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
           <ul className="space-y-2 font-medium">
+            {/* Sidebar Links for Small Devices */}
+            <li className="sm:hidden">
+              <a href="/" rel="noopener noreferrer" className='self-center flex flex-col p-2 uppercase font-semibold'>Contacts</a>
+            </li>
             <li>
               <a
                 href="#"
@@ -114,16 +116,11 @@ function Navbar() {
                 <p className="text-gray-500 text-sm">25,000 contacts</p>
               </a>
             </li>
-            {/* Sidebar Links for Small Devices */}
-            <li className="sm:hidden flex flex-col p-2">
-              <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Messages</a>
-              <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Contacts</a>
-              <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Automation</a>
-              <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Media</a>
-            </li>
           </ul>
         </div>
       </aside>
+
+      <Contacts />
     </>
   );
 }
