@@ -11,7 +11,8 @@ function Navbar() {
   const [totalContactsCount, setTotalContactsCount] = useState(0);
   const [listId, setListId] = useState(null);
   const [selectedListName, setSelectedListName] = useState("All Contacts");
-
+  const [contactz, setContactz] = useState([]);
+  
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
@@ -29,6 +30,16 @@ function Navbar() {
     };
     fetchContactLists();
   }, []);
+
+  const handleContactDeleted = (id) => {
+    setContactz((prevContacts) => prevContacts.filter((contact) => contact.id !== id));
+  };
+
+  const handleContactUpdated = (updatedContact) => {
+    setContactz((prevContacts) =>
+      prevContacts.map((contact) => (contact.id === updatedContact.id ? updatedContact : contact))
+    );
+  };
 
   return (
     <>
@@ -171,7 +182,9 @@ function Navbar() {
       </aside>
 
       <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-0' : 'md:ml-[-15rem]'} p-4`}>
-        { <Contacts listId={listId} selectedListName={selectedListName}/>}
+        { <Contacts listId={listId} selectedListName={selectedListName} contactz={contactz}
+        onContactDeleted={handleContactDeleted}
+        onContactUpdated={handleContactUpdated} />}
       </div>
     </div>
     </>
