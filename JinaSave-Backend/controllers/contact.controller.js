@@ -83,6 +83,19 @@ const getContactById = async (req, res) => {
     }
 };
 
+// GET CONTACTS BY LISTID
+
+const getContactsByListId = async (req, res) => {
+    const { listId } = req.params;
+    try {
+      const contacts = await Contact.find({ listId: listId }); // Query for contacts by listId
+      res.json(contacts);
+    } catch (error) {
+      console.error('Error fetching contacts by list ID:', error);
+      res.status(500).json({ message: 'Error fetching contacts' });
+    }
+  };
+
 // UPDATE CONTACT
 
 const updateContact = async (req, res) => {
@@ -120,6 +133,7 @@ module.exports = {
     createContact,
     getContacts,
     getContactById,
+    getContactsByListId,
     updateContact,
     deleteContact,
     upload,

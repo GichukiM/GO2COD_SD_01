@@ -1,14 +1,48 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaPen, FaUserPlus, FaFilter } from 'react-icons/fa6';
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { TiUpload } from "react-icons/ti";
+import axios from 'axios';
 
-function Contacts() {
+
+function Contacts({ listId, selectedListName }) {
+
+  const [contacts, setContacts] = useState([]);
+  const [selectedContacts, setSelectedContacts] = useState([]);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const response = await axios.get('http://localhost:3100/api/contacts');
+        setContacts(response.data);
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
+    };
+
+    fetchContacts();
+  }, []);
+
+  useEffect(() => {
+    if (listId) {
+      const fetchListContacts = async () => {
+        try {
+          const response = await axios.get(`http://localhost:3100/api/contacts/list/${listId}`);
+          setSelectedContacts(response.data);
+        } catch (error) {
+          console.error('Error fetching list contacts:', error);
+        }
+      };
+
+      fetchListContacts();
+    }
+  }, [listId]);
+
   return (
     <>
       <div className="p-4 sm:ml-64">
         <div className="p-4 border-2 border-gray-200 rounded-lg dark:border-gray-700 mt-14">
-          <h1 className='text-xl font-bold'>Pig Farming</h1>
+        <h1 className='text-xl font-bold'>{selectedListName}</h1>
 
           <div className="flex flex-wrap items-center justify-between pb-4 pt-4 space-y-2 sm:space-y-0">
               
@@ -72,34 +106,30 @@ function Contacts() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <td className="w-4 p-4">
-                      <div className="flex items-center">
-                        <input id="checkbox-table-search-1" type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
-                        <label htmlFor="checkbox-table-search-1" className="sr-only">checkbox</label>
-                      </div>
-                    </td>
-                    <th scope="row" className="flex items-center px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                      <img className="w-10 h-10 rounded-full" src="../../public/logo.webp" alt="Jese image"/>
-                      <div className="ps-3">
-                        <div className="text-base font-semibold">Thomas Lean</div>
-                      </div>
-                    </th>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      thomasylean@gmail.com
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      (254)7-123-125-398
-                    </td>
-                    <td className="px-6 py-4">
-                      Farm Manager
-                    </td>
-                    <td className="px-6 py-4 flex space-x-2 items-center">
-                      <RiDeleteBin5Line className='text-red-600 text-lg'/>
-                      <FaPen className='text-green-600 text-lg' />
-                    </td>
-                  </tr>
-                </tbody>
+        {(listId ? selectedContacts : contacts).map((contact) => (
+          <tr key={contact._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+            <td className="w-4 p-4">
+              <div className="flex items-center">
+                <input type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" />
+                <label className="sr-only">checkbox</label>
+              </div>
+            </td>
+            <th scope="row" className="flex items-center px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+              <img className="w-10 h-10 rounded-full" src={contact.profile || "../../public/logo.webp"} alt="Profile" />
+              <div className="ps-3">
+                <div className="text-base font-semibold">{contact.name}</div>
+              </div>
+            </th>
+            <td className="px-6 py-4 whitespace-nowrap">{contact.email}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{contact.phone}</td>
+            <td className="px-6 py-4">{contact.tag}</td>
+            <td className="px-6 py-4 flex space-x-2 items-center">
+              <RiDeleteBin5Line className="text-red-600 text-lg cursor-pointer" />
+              <FaPen className="text-green-600 text-lg cursor-pointer" />
+            </td>
+          </tr>
+        ))}
+      </tbody>
               </table>
             </div>
 

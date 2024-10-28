@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaBell, FaPlus } from "react-icons/fa6";
 import { FaTimes, FaBars } from 'react-icons/fa';
 import Contacts from './Contacts';
+import axios from 'axios';
 
 function Navbar() {
 
   const [isOpen, setIsOpen] = useState(false);
+  const [contactLists, setContactLists] = useState([]);
+  const [totalContactsCount, setTotalContactsCount] = useState(0);
+  const [listId, setListId] = useState(null);
+  const [selectedListName, setSelectedListName] = useState("All Contacts");
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+
+  useEffect(() => {
+    const fetchContactLists = async () => {
+      try {
+        const response = await axios.get('http://localhost:3100/api/contactLists');
+        setContactLists(response.data);
+        const contactsResponse = await axios.get('http://localhost:3100/api/contacts');
+        setTotalContactsCount(contactsResponse.data.length);
+      } catch (e) {
+        console.error('Error Fetching contact lists:', e);
+      }
+    };
+    fetchContactLists();
+  }, []);
 
   return (
     <>
@@ -124,21 +143,35 @@ function Navbar() {
                 <FaPlus className="inline-flex items-center justify-center w-6 h-6 p-1 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300" />
               </a>
             </li>
-            <li>
+            <li onClick={() => {setListId(null); setSelectedListName("All Contacts")}}>
               <a
                 href="#"
                 className="flex flex-col p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
               >
                 <span className="font-bold">All Contacts</span>
-                <p className="text-gray-500 text-sm">25,000 contacts</p>
+                <span className="text-gray-500 text-sm">{totalContactsCount.toLocaleString()} contacts</span> 
               </a>
             </li>
+            {contactLists.map((list) => (
+            <li key={list._id} onClick={() => {
+                setListId(list._id);
+                setSelectedListName(list.name);
+              }}>
+              <a
+                href="#"
+                className="flex flex-col p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+              >
+                <span className="font-bold">{list.name}</span>
+                <p className="text-gray-500 text-sm">{list.contactCount.toLocaleString()} contacts</p>
+              </a>
+            </li>
+            ))}
           </ul>
         </div>
       </aside>
 
       <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-0' : 'md:ml-[-15rem]'} p-4`}>
-        <Contacts />
+        { <Contacts listId={listId} selectedListName={selectedListName}/>}
       </div>
     </div>
     </>
