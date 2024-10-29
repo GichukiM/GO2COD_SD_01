@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaBell, FaPlus } from "react-icons/fa6";
+import { FaBell, FaPlus, FaPen } from "react-icons/fa6";
+import { RiDeleteBin5Line } from "react-icons/ri";
 import { FaTimes, FaBars } from 'react-icons/fa';
 import Contacts from './Contacts';
+import AddContactListForm from './AddContactListForm';
+import EditContactListForm from './EditContactListForm';
 import axios from 'axios';
 
 function Navbar() {
@@ -12,9 +15,15 @@ function Navbar() {
   const [listId, setListId] = useState(null);
   const [selectedListName, setSelectedListName] = useState("All Contacts");
   const [contacts, setContacts] = useState([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
   
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
+  };
+
+  const toggleModal = () => {
+    setShowModal(prev => !prev);
   };
 
   useEffect(() => {
@@ -51,6 +60,43 @@ function Navbar() {
       contact.id === updatedContact.id ? updatedContact : contact
     ));
   }
+
+  const handleAddContactList = (newList) => {
+    setContactLists([...contactLists, newList]);
+  };
+
+  const handleEditContactList = (list) => {
+    setIsFormOpen(true);
+    setSelectedListName(list.name);
+  };
+
+  const handleDeleteContactList = async (list) => {
+    if (list.contactCount > 0) {
+      alert("Cannot delete a list that contains contacts.");
+      return;
+    }
+  
+    try {
+      await fetch(`http://localhost:3100/api/contactLists/${list._id}`, {
+        method: 'DELETE',
+      });
+      setContactLists(contactLists.filter((l) => l._id !== list._id));
+    } catch (error) {
+      console.error('Error deleting contact list:', error);
+    }
+  };
+
+  const handleUpdateContactList = (updatedList) => {
+    setContactLists(contactLists.map(list => 
+      list._id === updatedList._id ? updatedList : list
+    ));
+  };
+
+  const handleEditClick = (list) => {
+    setListId(list._id);
+    setSelectedListName(list.name);
+    setIsEditFormOpen(true);
+  };
 
   return (
     <>
@@ -136,71 +182,108 @@ function Navbar() {
       </nav>
 
       <div className="flex">
-      <button
-        onClick={toggleSidebar}
-        className="fixed top-20 left-0 z-50 p-2 bg-blue-500 text-white rounded-r-md transition-transform hover:bg-blue-600 hidden md:visible md:block"
-        aria-label="Toggle Sidebar"
-        style={{ transform: isOpen ? 'translateX(60%)' : 'none' }}
-      >
-        {isOpen ? <FaTimes /> : <FaBars />}
-      </button>
+        <button
+          onClick={toggleSidebar}
+          className="fixed top-20 left-0 z-50 p-2 bg-blue-500 text-white rounded-r-md transition-transform hover:bg-blue-600 hidden md:visible md:block"
+          aria-label="Toggle Sidebar"
+          style={{ transform: isOpen ? 'translateX(60%)' : 'none' }}
+        >
+          {isOpen ? <FaTimes /> : <FaBars />}
+        </button>
 
-      <aside
-        id="logo-sidebar"
-        className={`fixed top-10 left-0 z-40 w-64 h-screen pt-20 transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
-        aria-label="Sidebar"
-      >
-        <div className="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
-          <ul className="space-y-2 font-medium">
-            <li className="sm:hidden">
-              <a href="/" rel="noopener noreferrer" className='self-center flex flex-col p-2 uppercase font-semibold'>Contacts</a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
-              >
-                <span className="flex-1 whitespace-nowrap font-bold text-2xl">Contact Lists</span>
-                <FaPlus className="inline-flex items-center justify-center w-6 h-6 p-1 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300" />
-              </a>
-            </li>
-            <li onClick={() => {setListId(null); setSelectedListName("All Contacts")}}>
-              <a
-                href="#"
-                className="flex flex-col p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
-              >
-                <span className="font-bold">All Contacts</span>
-                <span className="text-gray-500 text-sm">{totalContactsCount.toLocaleString()} contacts</span> 
-              </a>
-            </li>
-            {contactLists.map((list) => (
-            <li key={list._id} onClick={() => {
+        <aside
+          id="logo-sidebar"
+          className={`fixed top-10 left-0 z-40 w-64 h-screen pt-20 pb-10 transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
+          aria-label="Sidebar"
+        >
+          <div className="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
+            <ul className="space-y-2 font-medium">
+              <li className="sm:hidden">
+                <a href="/" rel="noopener noreferrer" className='self-center flex flex-col p-2 uppercase font-semibold'>Contacts</a>
+              </li>
+              <li>
+                <button
+                  className="flex cursor-text items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                >
+                  <span className="flex-1 whitespace-nowrap font-bold text-2xl">Contact Lists</span>
+                  <FaPlus className="inline-flex items-center cursor-pointer justify-center w-6 h-6 p-1 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300" onClick={() => setIsFormOpen(true)}/>
+                </button>
+              </li>
+              <li onClick={() => { setListId(null); setSelectedListName("All Contacts") }}>
+                <a
+                  href="#"
+                  className="flex flex-col p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                >
+                  <span className="font-bold">All Contacts</span>
+                  <span className="text-gray-500 text-sm">{totalContactsCount.toLocaleString()} contacts</span>
+                </a>
+              </li>
+              {contactLists.map((list) => (
+              <li key={list._id} onClick={() => {
                 setListId(list._id);
                 setSelectedListName(list.name);
               }}>
-              <a
-                href="#"
-                className="flex flex-col p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
-              >
-                <span className="font-bold">{list.name}</span>
-                <p className="text-gray-500 text-sm">{list.contactCount.toLocaleString()} contacts</p>
-              </a>
-            </li>
+                <div className="flex flex-col p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold">{list.name}</span>
+                    <div className="flex space-x-2">
+                      <FaPen 
+                        className="text-green-600 text-lg cursor-pointer" 
+                        onClick={() => handleEditClick(list)}
+                      />
+                      <RiDeleteBin5Line 
+                        className="text-red-600 text-lg cursor-pointer" 
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering the list selection
+                          handleDeleteContactList(list);
+                        }} 
+                      />
+                    </div>
+                  </div>
+                  <p className="text-gray-500 text-sm">{list.contactCount.toLocaleString()} contacts</p>
+                </div>
+              </li>
             ))}
-          </ul>
-        </div>
-      </aside>
+            </ul>
+          </div>
+        </aside>
 
-      <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-0' : 'md:ml-[-15rem]'} p-4`}>
-         <Contacts 
-            listId={listId} 
-            selectedListName={selectedListName} 
+        <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-0' : 'md:ml-[-15rem]'} p-4`}>
+          <Contacts
+            listId={listId}
+            selectedListName={selectedListName}
             contacts={contacts}
             onDeleteContact={handleDeleteContact}
-            // onEditContact={handleEditContact} 
-         />
+            // onEditContact={handleEditContact}
+          />
+        </div>
+
+        {isFormOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50" onClick={toggleModal}>
+          <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/3" onClick={(e) => e.stopPropagation()}>
+          <AddContactListForm 
+            onClose={() => setIsFormOpen(false)} 
+            onAdd={handleAddContactList} 
+            existingListName={selectedListName} // Pass the existing name
+            listId={listId} // Pass the list ID
+          />
+          </div>
+        </div>
+        )}
+
+        {isEditFormOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/3" onClick={(e) => e.stopPropagation()}>
+              <EditContactListForm 
+                listId={listId}
+                existingListName={selectedListName}
+                onClose={() => setIsEditFormOpen(false)}
+                onUpdate={handleUpdateContactList}
+              />
+            </div>
+          </div>
+        )}
       </div>
-    </div>
     </>
   );
 }

@@ -25,6 +25,20 @@ const getAllContactLists = async (req, res) => {
     }
 };
 
+const getContactList = async (req, res) => {
+    try{
+        const contactList = await ContactList.findById(req.params.id);
+
+        if (!contactList) return res.status(404).json({ message: 'Contact list not found' });
+
+        res.status(200).json(contactList);
+    } catch (err) {
+            if (err.kind === 'ObjectId') return res.status(404).json({ message: 'Contact list not found' });
+            res.status(500).json({ message: err.message });
+        };
+};
+
+
 const addContactList = async (req, res) => {
     const newList = new ContactList({
         name: req.body.name,
@@ -65,4 +79,4 @@ const updateContactList = (req, res) => {
 };
 
 
-module.exports = { getAllContactLists, addContactList, deleteContactList, updateContactList };
+module.exports = { getAllContactLists, addContactList, deleteContactList, updateContactList, getContactList};

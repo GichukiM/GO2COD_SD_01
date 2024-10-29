@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaPen, FaUserPlus, FaFilter } from 'react-icons/fa6';
 import { RiDeleteBin5Line } from "react-icons/ri";
-import { TiUpload } from "react-icons/ti";
 import axios from 'axios';
 import AddContactForm from './AddContactForm';
 import EditContactForm from './EditContactForm';
@@ -11,7 +10,9 @@ function Contacts({ listId, selectedListName, onDeleteContact }) {
   const [selectedContacts, setSelectedContacts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingContact, setEditingContact] = useState(null); // New state for the editing contact
+  const [editingContact, setEditingContact] = useState(null);
+  // const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleModal = () => {
     setShowModal(prev => !prev);
@@ -51,10 +52,19 @@ function Contacts({ listId, selectedListName, onDeleteContact }) {
   }, [listId]);
 
   const handleDelete = async (contactId) => {
-    await onDeleteContact(contactId); // Call delete handler from props
+    await onDeleteContact(contactId);
     setContacts(contacts.filter(contact => contact._id !== contactId));
     setSelectedContacts(selectedContacts.filter(contact => contact._id !== contactId));
   };
+
+  const filteredContacts = (listId ? selectedContacts : contacts).filter(contact => {
+    return (
+      contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.phone.includes(searchTerm) ||
+      (contact.tag && contact.tag.toLowerCase().includes(searchTerm.toLowerCase())) // Check for tag
+    );
+  });
 
   return (
     <>
@@ -65,12 +75,14 @@ function Contacts({ listId, selectedListName, onDeleteContact }) {
           <div className="flex flex-wrap items-center justify-between pb-4 pt-4 space-y-2 sm:space-y-0">
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-auto">
               <div className="relative w-full sm:w-auto">
-                <input
-                  type="text"
-                  id="table-search"
-                  className="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-slate-300 w-full focus:ring-black focus:border-black"
-                  placeholder="Search for items"
-                />
+              <input
+                type="text"
+                id="table-search"
+                className="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-slate-300 w-full focus:ring-black focus:border-black"
+                placeholder="Search for items"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
               </div>
               <button className="flex items-center justify-center space-x-1 border border-black p-2 rounded-xl w-full sm:w-auto">
                 <FaFilter /> <span>Filter</span>
@@ -78,9 +90,6 @@ function Contacts({ listId, selectedListName, onDeleteContact }) {
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-auto">
-              <button className="flex items-center justify-center space-x-1 border border-black p-2 rounded-xl w-full sm:w-auto">
-                <TiUpload /> <span>Upload</span> 
-              </button>
               <button
                 onClick={toggleModal}
                 className="flex items-center justify-center space-x-1 border p-2 rounded-xl bg-[#7CB9E8] w-full sm:w-auto"
@@ -102,7 +111,7 @@ function Contacts({ listId, selectedListName, onDeleteContact }) {
                 </tr>
               </thead>
               <tbody>
-                {(listId ? selectedContacts : contacts).map((contact) => (
+              {(listId ? filteredContacts : filteredContacts).map((contact) => (
                   <tr key={contact._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                     <th scope="row" className="flex items-center px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                       <img className="w-10 h-10 rounded-full" src={contact.profile || "../../public/logo.webp"} alt="Profile" />
@@ -112,7 +121,7 @@ function Contacts({ listId, selectedListName, onDeleteContact }) {
                     </th>
                     <td className="px-6 py-4 whitespace-nowrap">{contact.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{contact.phone}</td>
-                    <td className="px-6 py-4">{contact.tag}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{contact.tag || 'No tags'}</td>
                     <td className="px-6 py-4 flex space-x-2 items-center">
                       <FaPen onClick={() => toggleEdit(contact)} className="text-green-600 text-lg cursor-pointer" />
                       <RiDeleteBin5Line onClick={() => handleDelete(contact._id)} className="text-red-600 text-lg cursor-pointer" />
