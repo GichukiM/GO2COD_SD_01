@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const ContactRoute = require('./routes/contact.route.js');
 const contactListRoute = require('./routes/contactList.routes.js');
 const cors = require('cors');
-require('dotenv').config(); // Load environment variables from .env file
+require('dotenv').config();
 
 const app = express();
 
@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 });
 
 // Database connection and server start
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log("Connection to MongoDB established");
         app.listen(process.env.PORT || 3100, () => {
@@ -31,5 +31,5 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
     })
     .catch((err) => {
         console.error("Error connecting to MongoDB:", err);
-        process.exit(1); // Exit the application if database connection fails
+        process.exit(1); 
     });

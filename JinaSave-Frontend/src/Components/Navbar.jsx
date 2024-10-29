@@ -11,7 +11,7 @@ function Navbar() {
   const [totalContactsCount, setTotalContactsCount] = useState(0);
   const [listId, setListId] = useState(null);
   const [selectedListName, setSelectedListName] = useState("All Contacts");
-  const [contactz, setContactz] = useState([]);
+  const [contacts, setContacts] = useState([]);
   
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -31,15 +31,26 @@ function Navbar() {
     fetchContactLists();
   }, []);
 
-  const handleContactDeleted = (id) => {
-    setContactz((prevContacts) => prevContacts.filter((contact) => contact.id !== id));
+  const handleAddContact = (newContact) => {
+    setContacts([...contacts, newContact]);
   };
 
-  const handleContactUpdated = (updatedContact) => {
-    setContactz((prevContacts) =>
-      prevContacts.map((contact) => (contact.id === updatedContact.id ? updatedContact : contact))
-    );
+  const handleDeleteContact = async (id) => {
+    try {
+      await fetch(`http://localhost:3100/api/contacts/${id}`, {
+        method: 'DELETE',
+      });
+      setContacts(contacts.filter((contact) => contact.id !== id));
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+    }
   };
+
+  const handleEditContact = (updatedContact) => {
+    setContacts(contacts.map((contact) =>
+      contact.id === updatedContact.id ? updatedContact : contact
+    ));
+  }
 
   return (
     <>
@@ -82,7 +93,6 @@ function Navbar() {
               <a href="/" rel="noopener noreferrer" className='self-center uppercase font-semibold'>Contacts</a>
             </div>
             <div className="flex items-center">
-              <FaBell className='w-6 h-6' />
               <div className="flex items-center ms-3">
                 <div>
                   <button
@@ -182,9 +192,13 @@ function Navbar() {
       </aside>
 
       <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-0' : 'md:ml-[-15rem]'} p-4`}>
-        { <Contacts listId={listId} selectedListName={selectedListName} contactz={contactz}
-        onContactDeleted={handleContactDeleted}
-        onContactUpdated={handleContactUpdated} />}
+         <Contacts 
+            listId={listId} 
+            selectedListName={selectedListName} 
+            contacts={contacts}
+            onDeleteContact={handleDeleteContact}
+            // onEditContact={handleEditContact} 
+         />
       </div>
     </div>
     </>

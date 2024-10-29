@@ -6,16 +6,16 @@ const getAllContactLists = async (req, res) => {
         const contactLists = await ContactList.aggregate([
             {
                 $lookup: {
-                    from: 'contacts',           // Collection to join (contacts)
-                    localField: '_id',          // Field from ContactList
-                    foreignField: 'listId',     // Field from Contact
-                    as: 'contacts'              // Alias for the joined documents
+                    from: 'contacts',           
+                    localField: '_id',          
+                    foreignField: 'listId',     
+                    as: 'contacts'              
                 }
             },
             {
                 $project: {
                     name: 1,
-                    contactCount: { $size: '$contacts' } // Count the number of contacts in each list
+                    contactCount: { $size: '$contacts' } 
                 }
             }
         ]);
