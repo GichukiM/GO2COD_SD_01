@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const ContactRoute = require('./routes/contact.route.js');
 const contactListRoute = require('./routes/contactList.routes.js');
+const userRoute = require('./routes/user.route.js');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Routes
+app.use('/api/users', userRoute);
 app.use('/api/contacts', ContactRoute);
 app.use('/api/contactLists', contactListRoute);
 

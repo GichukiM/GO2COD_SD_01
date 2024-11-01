@@ -6,6 +6,8 @@ import Contacts from './Contacts';
 import AddContactListForm from './AddContactListForm';
 import EditContactListForm from './EditContactListForm';
 import axios from 'axios';
+import SignupModal from './signup'
+import LoginModal from './signin'
 
 function Navbar() {
 
@@ -17,6 +19,9 @@ function Navbar() {
   const [contacts, setContacts] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const [isSignupOpen, setSignupOpen] = useState(false);
+  const [isLoginOpen, setLoginOpen] = useState(false);
+  const user = { name: 'User', email: 'user@example.com' }; 
   
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -130,7 +135,7 @@ function Navbar() {
                 <img
                   src="../../public/logo.webp"
                   className="h-8 me-3"
-                  alt="FlowBite Logo"
+                  alt="Contact Manager Logo"
                 />
                 <span className="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white">JinaSave</span>
               </a>
@@ -157,21 +162,25 @@ function Navbar() {
                 </div>
                 <div className="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600" id="dropdown-user">
                   <div className="px-4 py-3" role="none">
-                    <p className="text-sm text-gray-900 dark:text-white" role="none">Neil Sims</p>
-                    <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">neil.sims@flowbite.com</p>
+                    <p className="text-sm text-gray-900 dark:text-white" role="none">{user.name}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">{user.email}</p>
                   </div>
                   <ul className="py-1" role="none">
                     <li>
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Dashboard</a>
+                      <button 
+                        className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+                        onClick={() => setSignupOpen(true)}
+                      >
+                        Sign up
+                      </button>
                     </li>
                     <li>
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Settings</a>
-                    </li>
-                    <li>
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Earnings</a>
-                    </li>
-                    <li>
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Sign out</a>
+                      <button 
+                        className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+                        onClick={() => setLoginOpen(true)}
+                      >
+                        Log In
+                      </button>
                     </li>
                   </ul>
                 </div>
@@ -234,7 +243,7 @@ function Navbar() {
                       <RiDeleteBin5Line 
                         className="text-red-600 text-lg cursor-pointer" 
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevent triggering the list selection
+                          e.stopPropagation();
                           handleDeleteContactList(list);
                         }} 
                       />
@@ -284,6 +293,9 @@ function Navbar() {
           </div>
         )}
       </div>
+
+      <SignupModal isOpen={isSignupOpen} onClose={() => setSignupOpen(false)} />
+      <LoginModal isOpen={isLoginOpen} onClose={() => setLoginOpen(false)} />
     </>
   );
 }
