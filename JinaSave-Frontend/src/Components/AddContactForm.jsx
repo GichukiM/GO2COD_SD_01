@@ -17,8 +17,10 @@ const AddContactForm = ({ toggleModal }) => {
       phone,
       tag,
       profile: profile || null,
-      contactList, 
+      contactList,
     };
+
+    console.log('Submitting contact:', newContact); // Debugging log
 
     try {
       const response = await fetch('http://localhost:3100/api/contacts/', {
@@ -31,12 +33,21 @@ const AddContactForm = ({ toggleModal }) => {
 
       if (response.ok) {
         alert('Contact added successfully!');
+        // Reset form fields
+        setName('');
+        setEmail('');
+        setPhone('');
+        setTag('');
+        setProfile('');
+        setContactList('');
         toggleModal();
       } else {
-        alert('Error adding contact. Please try again.');
+        const errorData = await response.json();
+        alert(`Error adding contact: ${errorData.message || 'Please try again.'}`);
       }
     } catch (error) {
       console.error('Error:', error);
+      alert('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -70,6 +81,7 @@ const AddContactForm = ({ toggleModal }) => {
             onChange={(e) => setEmail(e.target.value)}
             required
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
           />
         </div>
 
