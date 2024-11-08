@@ -1,7 +1,7 @@
 // utils/user.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3100/api/users'; // Make sure this is the correct base URL for your backend
+const API_URL = 'https://jinasave-backend.onrender.com'; // Make sure this is the correct base URL for your backend
 
 // Login user and return token
 export const loginUser = async (email, password) => {
