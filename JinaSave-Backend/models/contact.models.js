@@ -1,30 +1,26 @@
 const mongoose = require("mongoose");
 
-const ContactSchema = mongoose.Schema(
+const ContactSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please enter a name"],
+      required: true,
     },
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: 'Contact with this email already exists for the user',
     },
     phone: {
       type: String,
       required: true,
-      unique: true,
+      unique: 'Contact with this phone number already exists for the user',
     },
     tag: {
       type: String,
       required: true,
     },
-    profile: {
-      type: String,
-      required: false,
-    },
-    listId: {
+    contactListId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ContactList',
       required: true,
@@ -35,6 +31,4 @@ const ContactSchema = mongoose.Schema(
   }
 );
 
-const Contact = mongoose.model('Contact', ContactSchema);
-
-module.exports = Contact;
+module.exports = mongoose.model('Contact', ContactSchema);

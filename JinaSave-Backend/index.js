@@ -1,4 +1,4 @@
-// server.js
+
 const express = require('express');
 const mongoose = require('mongoose');
 const ContactRoute = require('./routes/contact.route.js');
@@ -22,6 +22,11 @@ app.use('/api/contactLists', contactListRoute);
 app.get('/', (req, res) => {
     res.send("Hello World");
 });
+
+// Just to check if this route is being caught correctly
+app.post('/api/test', (req, res) => {
+    res.status(200).json({ message: 'Test route works!' });
+  });
 
 // Database connection and server start
 mongoose.connect(process.env.MONGODB_URI)

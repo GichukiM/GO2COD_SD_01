@@ -1,24 +1,46 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { signupUser } from '../utils/user'; // Import the correct signup utility function
 
 const SignupModal = ({ isOpen, onClose }) => {
-  const [name, setname] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  
+  const [loading, setLoading] = useState(false); // To handle loading state
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ name, email, password });
+    setLoading(true);  // Show loading state while request is in progress
+    setError(null);    // Reset error state before starting the request
+
+    // Basic Validation
+    if (!name || !email || !password) {
+      setError('All fields are required.');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      console.log({ name, email, password });
-      await axios.post('http://localhost:3100/api/users/signup', { name, email, password });
-      console.log({ name, email, password });
-      alert('Signup successful');
-      onClose();
+      // Call the signup function from utils
+      const { token, user } = await signupUser(name, email, password);
+      alert('Signup successful!');
+      
+      // Optionally store token and user data in localStorage or Context
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Optionally, redirect to the login page or home
+      onClose();  // Close the modal on success
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed');
+      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+    } finally {
+      setLoading(false); // Reset loading state after request completes
     }
   };
 
@@ -34,7 +56,7 @@ const SignupModal = ({ isOpen, onClose }) => {
             <input
               type="text"
               value={name}
-              onChange={(e) => setname(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               required
               className="border rounded w-full py-2 px-3"
             />
@@ -70,8 +92,9 @@ const SignupModal = ({ isOpen, onClose }) => {
             <button
               type="submit"
               className="bg-blue-500 text-white py-2 px-4 rounded"
+              disabled={loading} // Disable button while loading
             >
-              Sign Up
+              {loading ? 'Signing up...' : 'Sign Up'}
             </button>
           </div>
         </form>
@@ -80,4 +103,4 @@ const SignupModal = ({ isOpen, onClose }) => {
   ) : null;
 };
 
-export default SignupModal
+export default SignupModal;
