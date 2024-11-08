@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { editContact, deleteContact } from '../utils/contact'; // Import deleteContact function from utils
 
-const EditContactForm = ({ contact, toggleEdit, onUpdate }) => {
+const EditContactForm = ({ contact, toggleEdit, onUpdate, onDelete }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [tag, setTag] = useState('');
   const [profile, setProfile] = useState('');
   const [contactList, setContactList] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (contact) {
@@ -29,37 +32,49 @@ const EditContactForm = ({ contact, toggleEdit, onUpdate }) => {
       tag,
       profile: profile || null,
       contactList,
+      _id: contact._id,  // Ensure we're sending the contact's ID
     };
 
-    console.log('Updating contact:', updatedContact);  // Debugging line
+    const token = localStorage.getItem('token'); // Retrieve JWT from local storage
+    setLoading(true); // Set loading state
 
     try {
-      const response = await fetch(`http://localhost:3100/api/contacts/${contact._id}`, {  // Corrected _id
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedContact),
-      });
+      const response = await editContact(token, updatedContact); // Use the editContact function from utils
 
-      if (response.ok) {
-        const data = await response.json(); // Get the updated contact from the response
-        alert('Contact updated successfully!');
-        onUpdate(data);  // Pass the updated contact to the onUpdate function
-        toggleEdit();
-      } else {
-        alert('Error updating contact. Please try again.');
-        const errorData = await response.json(); // Log error details
-        console.error('Update error details:', errorData);
-      }
-    } catch (error) {
-      console.error('Error:', error);
+      alert('Contact updated successfully!');
+      onUpdate(response);  // Pass the updated contact to the onUpdate function
+      toggleEdit(); // Close the edit form/modal
+    } catch (err) {
+      setError('Error updating contact. Please try again.'); // Set error message
+      console.error('Error:', err); // Log error for debugging
+    } finally {
+      setLoading(false); // Reset loading state
+    }
+  };
+
+  const handleDelete = async () => {
+    const token = localStorage.getItem('token'); // Retrieve JWT from local storage
+    setLoading(true); // Set loading state
+
+    try {
+      const response = await deleteContact(token, contact._id); // Call deleteContact function from utils
+      alert('Contact deleted successfully!');
+      onDelete(contact._id);  // Notify parent component to remove the contact from its list
+      toggleEdit(); // Close the edit form/modal
+    } catch (err) {
+      setError('Error deleting contact. Please try again.');
+      console.error('Error:', err);
+    } finally {
+      setLoading(false); // Reset loading state
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded p-8 mb-4 max-w-md mx-auto">
       <h2 className="text-lg font-bold mb-4">Edit Contact</h2>
+
+      {/* Display error message if exists */}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
@@ -136,9 +151,20 @@ const EditContactForm = ({ contact, toggleEdit, onUpdate }) => {
         <button
           type="submit"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          disabled={loading} // Disable the button while loading
         >
-          Update Contact
+          {loading ? 'Updating...' : 'Update Contact'}
         </button>
+        
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          disabled={loading} // Disable the button while loading
+        >
+          {loading ? 'Deleting...' : 'Delete Contact'}
+        </button>
+        
         <button
           type="button"
           onClick={toggleEdit}
@@ -152,4 +178,3 @@ const EditContactForm = ({ contact, toggleEdit, onUpdate }) => {
 };
 
 export default EditContactForm;
- 

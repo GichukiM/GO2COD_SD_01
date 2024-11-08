@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { FaBell, FaPlus, FaPen } from "react-icons/fa6";
+import { useState, useEffect } from 'react';
+import { FaPlus, FaPen } from "react-icons/fa";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FaTimes, FaBars } from 'react-icons/fa';
 import Contacts from './Contacts';
 import AddContactListForm from './AddContactListForm';
 import EditContactListForm from './EditContactListForm';
 import axios from 'axios';
-import SignupModal from './signup'
-import LoginModal from './signin'
+import SignupModal from './signup';
+import LoginModal from './signin';
+import { deleteContact } from '../utils/contact';
+import { getUserInfo } from '../utils/user';  // Import the getUserInfo function
 
 function Navbar() {
-
   const [isOpen, setIsOpen] = useState(false);
   const [contactLists, setContactLists] = useState([]);
   const [totalContactsCount, setTotalContactsCount] = useState(0);
@@ -21,8 +22,9 @@ function Navbar() {
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
   const [isSignupOpen, setSignupOpen] = useState(false);
   const [isLoginOpen, setLoginOpen] = useState(false);
-  const user = { name: 'User', email: 'user@example.com' }; 
-  
+  const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState(null);  // Initialize user state
+
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
@@ -31,76 +33,100 @@ function Navbar() {
     setShowModal(prev => !prev);
   };
 
+  // Fetch contact lists and total contacts on component mount
   useEffect(() => {
     const fetchContactLists = async () => {
       try {
-        const response = await axios.get('http://localhost:3100/api/contactLists');
+        const token = localStorage.getItem('token');
+        console.log("Token: ", token);
+        const response = await axios.get('http://localhost:3100/api/contactLists', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setContactLists(response.data);
-        const contactsResponse = await axios.get('http://localhost:3100/api/contacts');
+
+        // Fetch contacts count
+        const contactsResponse = await axios.get('http://localhost:3100/api/contacts', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setTotalContactsCount(contactsResponse.data.length);
       } catch (e) {
-        console.error('Error Fetching contact lists:', e);
+        console.error('Error fetching contact lists:', e);
       }
     };
+
+    const fetchUserInfo = async () => {
+      try {
+        const userInfo = await getUserInfo();  // Fetch user info from backend
+        if (userInfo) {
+          setUser(userInfo);  // Set the user data in state
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        // Optionally, you could handle the case where the user is not logged in or token is invalid
+      }
+    };
+
     fetchContactLists();
+    fetchUserInfo();  // Fetch user info when component mounts
   }, []);
 
-  const handleAddContact = (newContact) => {
-    setContacts([...contacts, newContact]);
-  };
-
-  const handleDeleteContact = async (id) => {
+  const handleDeleteContact = async (contactId) => {
+    const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:3100/api/contacts/${id}`, {
-        method: 'DELETE',
-      });
-      setContacts(contacts.filter((contact) => contact.id !== id));
+      await deleteContact(token, contactId); // Delete contact from backend
+      // Update the contact list state in the parent component
+      setContacts(prevContacts => prevContacts.filter(contact => contact._id !== contactId));
     } catch (error) {
       console.error('Error deleting contact:', error);
+      // Optionally, show an error message here
     }
   };
 
-  const handleEditContact = (updatedContact) => {
-    setContacts(contacts.map((contact) =>
-      contact.id === updatedContact.id ? updatedContact : contact
-    ));
-  }
+  // Update contact handler in the parent
+  const handleUpdateContact = (updatedContact) => {
+    setContacts(prevContacts =>
+      prevContacts.map(contact =>
+        contact._id === updatedContact._id ? updatedContact : contact
+      )
+    );
+  };
 
+  // Handle adding a new contact list
   const handleAddContactList = (newList) => {
     setContactLists([...contactLists, newList]);
   };
 
+  // Handle editing an existing contact list
   const handleEditContactList = (list) => {
-    setIsFormOpen(true);
+    setIsEditFormOpen(true);
     setSelectedListName(list.name);
+    setListId(list._id);  // Ensure the list ID is set for updating
   };
 
+  // Handle updating an existing contact list in the parent state
+  const handleUpdateContactList = (updatedList) => {
+    setContactLists(prevLists => 
+      prevLists.map(list => (list._id === updatedList._id ? updatedList : list))
+    );
+    setIsEditFormOpen(false); // Close the edit form modal after updating
+  };
+
+  // Handle deleting a contact list
   const handleDeleteContactList = async (list) => {
     if (list.contactCount > 0) {
       alert("Cannot delete a list that contains contacts.");
       return;
     }
-  
+
     try {
-      await fetch(`http://localhost:3100/api/contactLists/${list._id}`, {
-        method: 'DELETE',
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:3100/api/contactLists/${list._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      setContactLists(contactLists.filter((l) => l._id !== list._id));
+      setContactLists(contactLists.filter(l => l._id !== list._id));
     } catch (error) {
       console.error('Error deleting contact list:', error);
     }
-  };
-
-  const handleUpdateContactList = (updatedList) => {
-    setContactLists(contactLists.map(list => 
-      list._id === updatedList._id ? updatedList : list
-    ));
-  };
-
-  const handleEditClick = (list) => {
-    setListId(list._id);
-    setSelectedListName(list.name);
-    setIsEditFormOpen(true);
   };
 
   return (
@@ -110,11 +136,9 @@ function Navbar() {
           <div className="flex items-center justify-between">
             <div className="flex items-center justify-start rtl:justify-end">
               <button
-                data-drawer-target="logo-sidebar"
-                data-drawer-toggle="logo-sidebar"
-                aria-controls="logo-sidebar"
-                type="button"
+                onClick={toggleSidebar}
                 className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+                aria-label="Toggle Sidebar"
               >
                 <span className="sr-only">Open sidebar</span>
                 <svg
@@ -162,8 +186,8 @@ function Navbar() {
                 </div>
                 <div className="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600" id="dropdown-user">
                   <div className="px-4 py-3" role="none">
-                    <p className="text-sm text-gray-900 dark:text-white" role="none">{user.name}</p>
-                    <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">{user.email}</p>
+                    <p className="text-sm text-gray-900 dark:text-white" role="none">{user ? user.name : 'Loading...'}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">{user ? user.email : 'Loading...'}</p>
                   </div>
                   <ul className="py-1" role="none">
                     <li>
@@ -207,15 +231,15 @@ function Navbar() {
         >
           <div className="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
             <ul className="space-y-2 font-medium">
-              <li className="sm:hidden">
-                <a href="/" rel="noopener noreferrer" className='self-center flex flex-col p-2 uppercase font-semibold'>Contacts</a>
-              </li>
               <li>
                 <button
-                  className="flex cursor-text items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                  className="flex cursor-pointer items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
                 >
                   <span className="flex-1 whitespace-nowrap font-bold text-2xl">Contact Lists</span>
-                  <FaPlus className="inline-flex items-center cursor-pointer justify-center w-6 h-6 p-1 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300" onClick={() => setIsFormOpen(true)}/>
+                  <FaPlus 
+                    className="inline-flex items-center justify-center w-6 h-6 p-1 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300" 
+                    onClick={() => setIsFormOpen(true)}
+                  />
                 </button>
               </li>
               <li onClick={() => { setListId(null); setSelectedListName("All Contacts") }}>
@@ -228,31 +252,31 @@ function Navbar() {
                 </a>
               </li>
               {contactLists.map((list) => (
-              <li key={list._id} onClick={() => {
-                setListId(list._id);
-                setSelectedListName(list.name);
-              }}>
-                <div className="flex flex-col p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold">{list.name}</span>
-                    <div className="flex space-x-2">
-                      <FaPen 
-                        className="text-green-600 text-lg cursor-pointer" 
-                        onClick={() => handleEditClick(list)}
-                      />
-                      <RiDeleteBin5Line 
-                        className="text-red-600 text-lg cursor-pointer" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteContactList(list);
-                        }} 
-                      />
+                <li key={list._id} onClick={() => {
+                  setListId(list._id);
+                  setSelectedListName(list.name);
+                }}>
+                  <div className="flex flex-col p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold">{list.name}</span>
+                      <div className="flex space-x-2">
+                        <FaPen 
+                          className="text-green-600 text-lg cursor-pointer" 
+                          onClick={() => handleEditContactList(list)}
+                        />
+                        <RiDeleteBin5Line 
+                          className="text-red-600 text-lg cursor-pointer" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteContactList(list);
+                          }} 
+                        />
+                      </div>
                     </div>
+                    <p className="text-gray-500 text-sm">{list.contactCount ? list.contactCount.toLocaleString() : 0} contacts</p>
                   </div>
-                  <p className="text-gray-500 text-sm">{list.contactCount.toLocaleString()} contacts</p>
-                </div>
-              </li>
-            ))}
+                </li>
+              ))}
             </ul>
           </div>
         </aside>
@@ -263,21 +287,22 @@ function Navbar() {
             selectedListName={selectedListName}
             contacts={contacts}
             onDeleteContact={handleDeleteContact}
-            // onEditContact={handleEditContact}
+            onUpdate={handleUpdateContact}
+            onClose={() => setIsEditFormOpen(false)}
           />
         </div>
 
         {isFormOpen && (
           <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50" onClick={toggleModal}>
-          <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/3" onClick={(e) => e.stopPropagation()}>
-          <AddContactListForm 
-            onClose={() => setIsFormOpen(false)} 
-            onAdd={handleAddContactList} 
-            existingListName={selectedListName} // Pass the existing name
-            listId={listId} // Pass the list ID
-          />
+            <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/3" onClick={(e) => e.stopPropagation()}>
+              <AddContactListForm 
+                onClose={() => setIsFormOpen(false)} 
+                onAdd={handleAddContactList} 
+                existingListName={selectedListName} 
+                listId={listId} 
+              />
+            </div>
           </div>
-        </div>
         )}
 
         {isEditFormOpen && (
@@ -287,7 +312,7 @@ function Navbar() {
                 listId={listId}
                 existingListName={selectedListName}
                 onClose={() => setIsEditFormOpen(false)}
-                onUpdate={handleUpdateContactList}
+                onUpdate={handleUpdateContactList}  // Pass the handler here
               />
             </div>
           </div>
