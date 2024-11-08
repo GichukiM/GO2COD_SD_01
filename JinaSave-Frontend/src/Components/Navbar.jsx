@@ -157,7 +157,7 @@ function Navbar() {
               </button>
               <a href="/" className="flex ms-2 md:me-24">
                 <img
-                  src="../../public/logo.webp"
+                  src="/logo.webp"
                   className="h-8 me-3"
                   alt="Contact Manager Logo"
                 />
@@ -179,7 +179,7 @@ function Navbar() {
                     <span className="sr-only">Open user menu</span>
                     <img
                       className="w-8 h-8 rounded-full"
-                      src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+                      src="https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
                       alt="user photo"
                     />
                   </button>
