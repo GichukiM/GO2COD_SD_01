@@ -72,7 +72,6 @@ const AddContactForm = ({ toggleModal }) => {
       console.error("Error adding contact:", error);  // Log error to understand what went wrong
     } finally {
       setLoading(false); // Reset loading state
->>>>>>> 1d4631b (feat: Implement user authentication (login/signup), contact list management (add, edit, delete))
     }
   };
   
