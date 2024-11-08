@@ -49,39 +49,6 @@ const AddContactForm = ({ toggleModal }) => {
       phone,
       tag,
       profile: profile || null,
-<<<<<<< HEAD
-      contactList,
-    };
-
-    console.log('Submitting contact:', newContact); // Debugging log
-
-    try {
-      const response = await fetch('http://localhost:3100/api/contacts/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newContact),
-      });
-
-      if (response.ok) {
-        alert('Contact added successfully!');
-        // Reset form fields
-        setName('');
-        setEmail('');
-        setPhone('');
-        setTag('');
-        setProfile('');
-        setContactList('');
-        toggleModal();
-      } else {
-        const errorData = await response.json();
-        alert(`Error adding contact: ${errorData.message || 'Please try again.'}`);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An unexpected error occurred. Please try again.');
-=======
       contactList, // Pass the contact list name here
     };
   
