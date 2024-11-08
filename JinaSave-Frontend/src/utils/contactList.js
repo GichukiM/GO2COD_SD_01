@@ -1,7 +1,7 @@
 // utils/contactList.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3100/api';  // Make sure this is the correct base URL for your backend
+const API_URL = 'https://jinasave-backend.onrender.com';  // Make sure this is the correct base URL for your backend
 
 // Fetch all contact lists
 export const getContactLists = async (token) => {
